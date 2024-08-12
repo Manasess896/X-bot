@@ -20,19 +20,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Import secrets
+      - name: Check and Print Secrets
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET_KEY: ${{ secrets.TWITTER_API_SECRET_KEY }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
         run: |
-          echo "TWITTER_API_KEY: $TWITTER_API_KEY"
-          echo "TWITTER_API_SECRET_KEY: $TWITTER_API_SECRET_KEY"
-          echo "TWITTER_ACCESS_TOKEN: $TWITTER_ACCESS_TOKEN"
-          echo "TWITTER_ACCESS_TOKEN_SECRET: $TWITTER_ACCESS_TOKEN_SECRET"
-
-      - name: Run bot with error handling
+          # Check if secrets are set
+          if [ -z "$TWITTER_API_KEY" ] || [ -z "$TWITTER_API_SECRET_KEY" ] || [ -z "$TWITTER_ACCESS_TOKEN" ] || [ -z "$TWITTER_ACCESS_TOKEN_SECRET" ]; then
+            echo "One or more secrets are not set correctly!"
+            exit 1
+          else
+            # Print the first few characters of each secret to verify they are accessible
+            echo "TWITTER_API_KEY: ${TWITTER_API_KEY:0:4}****"
+            echo "TWITTER_API_SECRET_KEY: ${TWITTER_API_SECRET_KEY:0:4}****"
+            echo "TWITTER_ACCESS_TOKEN: ${TWITTER_ACCESS_TOKEN:0:4}****"
+            echo "TWITTER_ACCESS_TOKEN_SECRET: ${TWITTER_ACCESS_TOKEN_SECRET:0:4}****"
+          fi
+       - name: Run bot with error handling
         run: |
           python Main.py 
           # Implement error handling here if needed (e.g., using try...except)
