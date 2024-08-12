@@ -9,7 +9,9 @@ import http.client
 from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask
 from threading import Thread
-
+weather_api_key = os.getenv('WEATHER_API_KEY')
+if weather_api_key is None:
+    raise ValueError("weather api key is not set.")
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 if bearer_token is None:
@@ -28,7 +30,7 @@ if access_token_secret is None:
     raise ValueError("TWITTER_ACCESS_TOKEN_SECRET is not set.")
 
 # Weather API credentials
-weather_api_key = os.getenv('WEATHER_API_KEY')
+
 weather_api_url = 'http://api.weatherapi.com/v1/current.json'
 
 # Edamam API credentials
