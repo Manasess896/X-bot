@@ -80,7 +80,7 @@ def get_random_lunch_recipe():
     meal_type = "lunch"
     url = f"https://api.edamam.com/search?q={query}&mealType={meal_type}&app_id={edamam_app_id}&app_key={edamam_app_key}"
 
-    genres = movie_details['Genre'].split(', ') if movie_d    response = requests.get(url)
+    
     if response.status_code == 200:
         data = response.json()
         recipes = data.get("hits", [])
@@ -180,7 +180,9 @@ def post_movie_tweet():
     if not movie_details:
         print(f"Could not fetch movie details for IMDb ID {imdb_id}.")
         return
-etails['Genre'] else []
+
+    # Correct the conditional statement:
+    genres = movie_details['Genre'].split(', ') if 'Genre' in movie_details else [] 
     genres = ' '.join([f"#{genre}" for genre in genres])
     tweet_text = ( f"🎬 {movie_details['Title']} ({movie_details['Year']})\n"
                   f"Rating: ⭐️ {movie_details['imdbRating']} / 10\n"
@@ -217,7 +219,7 @@ scheduler.add_job(schedule_daily_tweet, 'cron', hour=7,  minute=10)
 scheduler.add_job(post_random_recipe_tweet, 'cron', hour=13, minute=10)
 
 # Schedule the movie tweet at a fixed time, e.g., every hour
-scheduler.add_job(post_movie_tweet, 'interval', hours=1)
+scheduler.add_job(post_movie_tweet, 'interval', minutes=1)
 
 # Start the scheduler
 scheduler.start()
