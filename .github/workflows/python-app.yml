@@ -34,7 +34,7 @@ jobs:
 
       - name: Run bot with error handling
         run: |
-          python x-bot.py 
+          python Main.py 
           # Implement error handling here if needed (e.g., using try...except)
 
       - name: Print success message
