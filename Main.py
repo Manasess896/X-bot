@@ -13,9 +13,17 @@ from threading import Thread
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 api_key = os.getenv('TWITTER_API_KEY')
+if api_key is None:
+    raise ValueError("TWITTER_API_KEY is not set.")
 api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
+if api_key_secret is None:
+    raise ValueError("TWITTER_API_KEY_SECRET is not set.")
 access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+if access_token is None:
+    raise ValueError("TWITTER_ACCESS_TOKEN is not set.")
 access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+if access_token_secret is None:
+    raise ValueError("TWITTER_ACCESS_TOKEN_SECRET is not set.")
 
 # Weather API credentials
 weather_api_key = os.getenv('WEATHER_API_KEY')
