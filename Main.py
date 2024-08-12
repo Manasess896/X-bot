@@ -12,6 +12,8 @@ from threading import Thread
 
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
+if bearer_token is None:
+    raise ValueError("TWITTER_BEARER_TOKEN is not set.")
 api_key = os.getenv('TWITTER_API_KEY')
 if api_key is None:
     raise ValueError("TWITTER_API_KEY is not set.")
