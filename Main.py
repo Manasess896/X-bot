@@ -9,6 +9,7 @@ import http.client
 from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask
 from threading import Thread
+
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 api_key = os.getenv('TWITTER_API_KEY')
@@ -26,7 +27,8 @@ edamam_app_key = os.getenv('EDAMAM_APP_KEY')
 
 # TMDb and OMDb API credentials
 tmdb_api_key = os.getenv('TMDB_API_KEY')
-omdb_api_key = os.getenv('OMDB_API_KEY')
+omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
+
 # Authenticate to Twitter
 print(f"API Key: {api_key}")
 
@@ -152,7 +154,7 @@ def fetch_movie_external_ids(tmdb_id):
 
 # Function to fetch movie details from OMDb
 def fetch_movie_details(imdb_id):
-    url = f"https://www.omdbapi.com/?i={imdb_id}&apikey={omdb_api_key}"
+    url = f"https://www.omdbapi.com/?i={imdb_id}&apikey={omdb_api_key}"  # Use the imported OMDb API key
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
