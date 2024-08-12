@@ -34,15 +34,17 @@ jobs:
           else
             # Print the first few characters of each secret to verify they are accessible
             echo "TWITTER_API_KEY: ${TWITTER_API_KEY:0:4}****"
+            echo "TWITTER_API_KEY_SECRET: ${TWITTER_API_KEY_SECRET:0:4}****"
             echo "TWITTER_API_SECRET_KEY: ${TWITTER_API_SECRET_KEY:0:4}****"
             echo "TWITTER_ACCESS_TOKEN: ${TWITTER_ACCESS_TOKEN:0:4}****"
             echo "TWITTER_ACCESS_TOKEN_SECRET: ${TWITTER_ACCESS_TOKEN_SECRET:0:4}****"
           fi
-       - name: Run bot with error handling
+
+      - name: Run bot with error handling
         run: |
           python Main.py 
           # Implement error handling here if needed (e.g., using try...except)
 
       - name: Print success message
         run: |
-          echo "Bot execution completed successfully!"
+          echo "Bot is running successfully!"
