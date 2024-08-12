@@ -1,4 +1,3 @@
-
 name: Run Python Bot
 
 on:
@@ -26,11 +25,10 @@ jobs:
         env:
           TWITTER_API_KEY: "aycZVipABRHXo3O5NTTSpWrgU"
           TWITTER_API_KEY_SECRET: "5Y7Q4rzLKrWMEisWmZYpO522dHhtgnNbJWntKGwYlk92H8r87l"
-          TWITTER_ACCESS_TOKEN: "1804139203518959620-KdloN5leAMBebLGexSdIx0ipBYfSUN"         
-      TWITTER_ACCESS_TOKEN_SECRET: "radkNcyg1sYiEgTOREt3gLVqeS9UFYPoDxxl2pteQm7gR"
+          TWITTER_ACCESS_TOKEN: "1804139203518959620-KdloN5leAMBebLGexSdIx0ipBYfSUN"
+          TWITTER_ACCESS_TOKEN_SECRET: "radkNcyg1sYiEgTOREt3gLVqeS9UFYPoDxxl2pteQm7gR"
         run: |
           python Main.py 
          
       - name: Print success message
         run: echo "Bot execution completed successfully!"
-```
