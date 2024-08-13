@@ -11,25 +11,6 @@ from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
 
-# Load the .env file
-load_dotenv()
-# Twitter credentials
-bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
-if bearer_token is None:
-    raise ValueError("TWITTER_BEARER_TOKEN is not set.")
-api_key = os.getenv('TWITTER_API_KEY')
-if api_key is None:
-    raise ValueError("TWITTER_API_KEY is not set.")
-api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
-if api_key_secret is None:
-    raise ValueError("TWITTER_API_KEY_SECRET is not set.")
-access_token = os.getenv('TWITTER_ACCESS_TOKEN')
-if access_token is None:
-    raise ValueError("TWITTER_ACCESS_TOKEN is not set.")
-access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
-if access_token_secret is None:
-    raise ValueError("TWITTER_ACCESS_TOKEN_SECRET is not set.")
-
 # Weather API credentials
 weather_api_key = os.getenv('WEATHER_API_KEY')
 if weather_api_key is None:
@@ -45,20 +26,21 @@ tmdb_api_key = os.getenv('TMDB_API_KEY')
 omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
 
 # Authenticate to Twitter
-print(f"API Key: {api_key}")
+consumer_key = os.getenv('TWITTER_API_KEY')
+consumer_secret = os.getenv('TWITTER_API_KEY_SECRET')
+access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 
-client = tweepy.Client(
-    bearer_token=bearer_token,
-    consumer_key=api_key,
-    consumer_secret=api_key_secret,
-    access_token=access_token,
-    access_token_secret=access_token_secret
-)
-
-auth = tweepy.OAuthHandler(api_key, api_key_secret)
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
+
 api = tweepy.API(auth)
 
+try:
+  api.verify_credentials()
+  print("Authentication OK")
+except:
+  print("Error during authentication")
 # Function to get weather information
 def get_weather():
     params = {
