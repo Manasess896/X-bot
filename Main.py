@@ -10,21 +10,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
-
-# Weather API credentials
-weather_api_key = os.getenv('WEATHER_API_KEY')
-if weather_api_key is None:
-    raise ValueError("weather api key is not set.")
-weather_api_url = 'http://api.weatherapi.com/v1/current.json'
-
-# Edamam API credentials
-edamam_app_id = os.getenv('EDAMAM_APP_ID')
-edamam_app_key = os.getenv('EDAMAM_APP_KEY')
-
-# TMDb and OMDb API credentials
-tmdb_api_key = os.getenv('TMDB_API_KEY')
-omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
-
 # Authenticate to Twitter
 consumer_key = os.getenv('TWITTER_API_KEY')
 consumer_secret = os.getenv('TWITTER_API_KEY_SECRET')
@@ -41,6 +26,21 @@ try:
   print("Authentication OK")
 except:
   print("Error during authentication")
+# Weather API credentials
+weather_api_key = os.getenv('WEATHER_API_KEY')
+if weather_api_key is None:
+    raise ValueError("weather api key is not set.")
+weather_api_url = 'http://api.weatherapi.com/v1/current.json'
+
+# Edamam API credentials
+edamam_app_id = os.getenv('EDAMAM_APP_ID')
+edamam_app_key = os.getenv('EDAMAM_APP_KEY')
+
+# TMDb and OMDb API credentials
+tmdb_api_key = os.getenv('TMDB_API_KEY')
+omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
+
+
 # Function to get weather information
 def get_weather():
     params = {
