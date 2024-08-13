@@ -29,7 +29,7 @@ jobs:
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           TMDB_API_KEY: ${{secrets.TMDB_API_KEY}}
-          EDAMAM_APP_KEY: ${{EDAMAM_APP_KEY}}
+          EDAMAM_APP_KEY: ${{secrets.EDAMAM_APP_KEY}}
           EDAMAM_APP_ID: ${{secrets.EDAMAM_APP_ID}}
           WEATHER_API_KEY: ${{secrets.WEATHER_API_KEY}}
           OMDB_API_KEY: ${{secrets.OMDB_API_KEY}}                  
