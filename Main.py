@@ -9,7 +9,10 @@ import http.client
 from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask
 from threading import Thread
+from dotenv import load_dotenv
 
+# Load the .env file
+load_dotenv()
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 if bearer_token is None:
