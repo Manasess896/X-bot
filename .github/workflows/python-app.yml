@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   run-script:
@@ -15,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
@@ -28,10 +29,10 @@ jobs:
           TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_KEY_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-          TMDB_API_KEY: ${{secrets.TMDB_API_KEY}}
-          EDAMAM_APP_KEY: ${{secrets.EDAMAM_APP_KEY}}
-          EDAMAM_APP_ID: ${{secrets.EDAMAM_APP_ID}}
-          WEATHER_API_KEY: ${{secrets.WEATHER_API_KEY}}
-          OMDB_API_KEY: ${{secrets.OMDB_API_KEY}}                  
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          EDAMAM_APP_KEY: ${{ secrets.EDAMAM_APP_KEY }}
+          EDAMAM_APP_ID: ${{ secrets.EDAMAM_APP_ID }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
         run: |
           python Main.py
