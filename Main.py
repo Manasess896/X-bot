@@ -7,29 +7,20 @@ from io import BytesIO
 import os
 import http.client
 from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
 from flask import Flask
 from threading import Thread
-from dotenv import load_dotenv
-# Authenticate to Twitter
-consumer_key = os.getenv('TWITTER_API_KEY')
-consumer_secret = os.getenv('TWITTER_API_KEY_SECRET')
+from pytz import timezone
+
+# Twitter credentials
+bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
+api_key = os.getenv('TWITTER_API_KEY')
+api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
 access_token = os.getenv('TWITTER_ACCESS_TOKEN')
 access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-
-api = tweepy.API(auth)
-
-try:
-  api.verify_credentials()
-  print("Authentication OK")
-except:
-  print("Error during authentication")
 # Weather API credentials
 weather_api_key = os.getenv('WEATHER_API_KEY')
-if weather_api_key is None:
-    raise ValueError("weather api key is not set.")
 weather_api_url = 'http://api.weatherapi.com/v1/current.json'
 
 # Edamam API credentials
@@ -40,6 +31,18 @@ edamam_app_key = os.getenv('EDAMAM_APP_KEY')
 tmdb_api_key = os.getenv('TMDB_API_KEY')
 omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
 
+# Authenticate to Twitter
+client = tweepy.Client(
+    bearer_token=bearer_token,
+    consumer_key=api_key,
+    consumer_secret=api_key_secret,
+    access_token=access_token,
+    access_token_secret=access_token_secret
+)
+
+auth = tweepy.OAuthHandler(api_key, api_key_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth)
 
 # Function to get weather information
 def get_weather():
@@ -72,14 +75,13 @@ def schedule_daily_tweet():
     if tweet_text:
         post_tweet(tweet_text)
 
-
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
     query = "random"
     meal_type = "lunch"
     url = f"https://api.edamam.com/search?q={query}&mealType={meal_type}&app_id={edamam_app_id}&app_key={edamam_app_key}"
 
-    
+    response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         recipes = data.get("hits", [])
@@ -127,6 +129,7 @@ def post_random_recipe_tweet():
             print(f"Error downloading recipe image: {image_response.status_code} - {image_response.reason}")
     else:
         print("No recipe to post.")
+
 # Function to fetch popular movies from TMDb
 def fetch_popular_movies(page=1):
     url = f"https://api.themoviedb.org/3/movie/popular?api_key={tmdb_api_key}&language=en-US&page={page}"
@@ -205,12 +208,12 @@ def post_movie_tweet():
             print(f"Error downloading poster image: {image_response.status_code} - {image_response.reason}")
     else:
         post_tweet(tweet_text)
- 
 
-# Your existing bot code
 # Initialize the scheduler
-scheduler = BlockingScheduler()
-
+jobstores = {
+    'default': MemoryJobStore()
+}
+scheduler = BlockingScheduler(jobstores=jobstores, timezone=timezone('Africa/Nairobi'))
 # Schedule the daily weather tweet at 07:10
 scheduler.add_job(schedule_daily_tweet, 'cron', hour=7,  minute=10)
 
@@ -223,14 +226,6 @@ scheduler.add_job(post_movie_tweet, 'interval', hours=1)
 # Start the scheduler
 scheduler.start()
 
-def post_tweet(tweet_text):
-    try:
-        response = client.create_tweet(text=tweet_text)
-        print("Tweet posted successfully!", response.data)
-    except tweepy.TweepyException as e:
-        print(f"An error occurred: {e}")
-        print(f"Response: {e.response.text}")  # This will print the full error message from the API
-
 # Flask keep-alive code
 app = Flask('')
 
@@ -242,10 +237,4 @@ def run():
     app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
-    t = Thread(target=run)
-    t.start()
-
-# Call the keep_alive function to keep the bot running
-keep_alive()
-
-# Start the bot's main functionality (already being handled by the scheduler)
+    print("I'm alive!")
