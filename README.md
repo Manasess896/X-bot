@@ -1,5 +1,8 @@
 # X-bot
 This is a tweeter (x) bot. it was made using python .
+
+To see this bot at work. visit https://x.com/Bot_eighteen
+
 Its functionality is 
   + posting a weather update of a city every morning at 07:10am
   + posting a lunch recipee at 13:20
