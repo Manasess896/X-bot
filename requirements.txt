@@ -1,5 +1,5 @@
-flask
-requests
+Flask
 tweepy
-apscheduler
-python-dotenv
+requests
+APScheduler
+pytz
