@@ -21,4 +21,12 @@ what you need for this code to work :
       + weather API - get the API KEY   .http://api.weatherapi.com
 
 IF YOU ARE WONDERING HOW TO KEEP THIS BOT ONLINE FOR FREE HERE ON GITHUB CHECK OUT MY REPO ABOUT HOW TO KEEP GITHUB ACTIONS WORKFLOW ONLINE FOR ALMOST 24HOURS 
-https://github.com/Manasess896/Github-actions-activator-bot
+https://github.com/Manasess896/Github-actions-activator-bot 
+
+
+IF YOU ENCOUNTER PROBLEMS ,HAVE RECOMMENDATIONS,BUGS,ERRORS WITH THE CODE OR REPO  PLEASE SHARE WITH ME  ,HTTPS://WA.ME/+254114471302
+
+
+  IF IT DOESN'T WORK TELL ME IF IT WORKS TELL ME 
+
+  HAPPY CODING
