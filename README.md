@@ -12,11 +12,13 @@ Its functionality is
   + posting random trivia and answer
 
 what you need for this code to work :
-    + Tweeter API key
-    + Tweeter API key secret 
-    + Tweeter access token
-    + Tweeter access token secret
-    + Tweeter Bearer token
+
+  + Tweeter API key
+  + Tweeter API key secret 
+  + Tweeter access token
+  + Tweeter access token secret
+  + Tweeter Bearer token
+   
       You can get all this from https://developer.twitter.com/en/portal/products/free create an account and get your keys
       
    other keys you need is
