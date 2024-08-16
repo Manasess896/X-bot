@@ -258,7 +258,8 @@ def post_movie_tweet():
             print(f"Error downloading poster image: {image_response.status_code} - {image_response.reason}")
     else:
         post_tweet(tweet_text)
-#get random fact def get_random_fact():
+#get random fact
+        def get_random_fact():
     try:
         response = requests.get("https://uselessfacts.jsph.pl/random.json?language=en")
         response.raise_for_status()
