@@ -6,7 +6,8 @@ import logging
 from io import BytesIO
 import os
 import http.client 
-import html
+import html 
+import pytz
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
@@ -72,7 +73,7 @@ def get_weather():
 
     # Get condition from WeatherAPI
     try:
-        response = requests.get(weather_api_full_url)
+        response = requests.get(weather_api_url)
         response.raise_for_status()
         data = response.json()
         condition = data['current']['condition']['text']
@@ -354,3 +355,4 @@ def run():
 
 def keep_alive():
     print("I'm alive!")
+    run()
