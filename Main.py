@@ -5,12 +5,21 @@ import json
 import logging
 from io import BytesIO
 import os
-import http.client
+import http.client 
+import html
+from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from flask import Flask
 from threading import Thread
 from pytz import timezone
+# Optional imports
+# from apscheduler.schedulers.background import BackgroundScheduler
+import schedule
+# from dotenv import load_dotenv
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
+
 
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
@@ -23,6 +32,11 @@ access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 weather_api_key = os.getenv('WEATHER_API_KEY')
 weather_api_url = 'http://api.weatherapi.com/v1/current.json'
 
+#meteo source api credentials
+meteosource_api_key = os.getenv('METEOSOURCE_API_KEY')
+meteosource_api_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
+
+#
 # Edamam API credentials
 edamam_app_id = os.getenv('EDAMAM_APP_ID')
 edamam_app_key = os.getenv('EDAMAM_APP_KEY')
@@ -46,19 +60,50 @@ api = tweepy.API(auth)
 
 # Function to get weather information
 def get_weather():
-    params = {
-        'key': weather_api_key,
-        'q': 'Nairobi'
-    }
-    response = requests.get(weather_api_url, params=params)
-    if response.status_code == 200:
+    # Get temperature from MeteoSource
+    try:
+        response = requests.get(meteosource_api_url)
+        response.raise_for_status()
         data = response.json()
-        current_temp = data['current']['temp_c']
-        weather_description = data['current']['condition']['text']
-        return f"Good morning Nairobi! The weather is: {weather_description}, with a temperature of {current_temp}°C."
-    else:
-        print(f"Error retrieving weather data: {response.status_code} - {response.reason}")
-        return None
+        current_temp = data['current']['temperature']
+    except Exception as e:
+        print(f"Error retrieving temperature from MeteoSource: {e}")
+        current_temp = None
+
+    # Get condition from WeatherAPI
+    try:
+        response = requests.get(weather_api_full_url)
+        response.raise_for_status()
+        data = response.json()
+        condition = data['current']['condition']['text']
+    except Exception as e:
+        print(f"Error retrieving weather condition from WeatherAPI: {e}")
+        condition = "No condition data available"
+
+    # Get current time and date
+    tz = pytz.timezone('Africa/Nairobi')
+    now = datetime.now(tz)
+    formatted_time = now.strftime('%I:%M %p')
+    formatted_day = now.strftime('%A %d %B')
+
+    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather is {condition} with a temperature of {current_temp}°C."
+
+# Function to get USD to KES exchange rate
+def get_usd_to_kes_rate(api_key):
+    url = f"https://openexchangerates.org/api/latest.json?app_id={api_key}"
+    response = requests.get(url)
+    data = response.json()
+    
+    if 'error' in data:
+        raise Exception(f"Error fetching data: {data['error']['description']}")
+    
+    # Get USD to KES exchange rate
+    usd_to_kes_rate = data['rates'].get('KES')
+    
+    if not usd_to_kes_rate:
+        raise Exception("Exchange rate for KES not found.")
+    
+    return usd_to_kes_rate
 
 # Function to post a tweet
 def post_tweet(tweet_text):
@@ -67,14 +112,18 @@ def post_tweet(tweet_text):
         print("Tweet posted successfully!", response.data)
     except tweepy.TweepyException as e:
         print(f"An error occurred: {e}")
-        print(f"Response: {e.response.text}")  # This will print the full error message from the API
+        print(f"Response: {e.response.text}")
 
 # Function to schedule daily weather tweet
 def schedule_daily_tweet():
-    tweet_text = get_weather()
-    if tweet_text:
-        post_tweet(tweet_text)
-
+    weather_text = get_weather()
+    if weather_text:
+        try:
+            exchange_rate = get_usd_to_kes_rate(os.getenv('EXCHANGE_API_KEY'))
+            tweet_text = f"{weather_text} The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar."
+            post_tweet(tweet_text)
+        except Exception as e:
+            print(f"An error occurred while fetching exchange rate: {e}")
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
     query = "random"
@@ -208,21 +257,88 @@ def post_movie_tweet():
             print(f"Error downloading poster image: {image_response.status_code} - {image_response.reason}")
     else:
         post_tweet(tweet_text)
+#get random fact def get_random_fact():
+    try:
+        response = requests.get("https://uselessfacts.jsph.pl/random.json?language=en")
+        response.raise_for_status()
+        data = response.json()
+        return html.unescape(data['text'])
+    except Exception as e:
+        return f"Error fetching fact: {e}"
 
+def post_fact():
+    fact = get_random_fact()
+    try:
+        tweet_response = client.create_tweet(text=f"Random Fact: {fact}")
+        print(f"Fact posted successfully: {tweet_response.data['id']}")
+    except tweepy.TweepyException as e:
+        print(f"Fact: Failed to post fact: {e}")
+ #get random pun 
+def get_random_pun():
+    try:
+        response = requests.get("https://v2.jokeapi.dev/joke/Programming?type=single")
+        response.raise_for_status()
+        data = response.json()
+        if data.get('type') == 'single':
+            return html.unescape(data.get('joke', 'No pun available'))
+        else:
+            return "No pun available."
+    except Exception as e:
+        return f"Error fetching pun: {e}"
+
+def post_pun():
+    pun = get_random_pun()
+    try:
+        tweet_response = client.create_tweet(text=f"Random Pun: {pun}")
+        print(f"Pun posted successfully: {tweet_response.data['id']}")
+    except tweepy.TweepyException as e:
+        print(f"Pun: Failed to post pun: {e}")
+
+#get random trivia 
+def post_trivia():
+    try:
+        # Fetch a random trivia question from Open Trivia Database
+        trivia_url = "https://opentdb.com/api.php?amount=1&type=multiple"
+        response = requests.get(trivia_url)
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        trivia_data = response.json()
+        question = trivia_data["results"][0]["question"]
+        correct_answer = trivia_data["results"][0]["correct_answer"]
+
+        # Decode HTML entities
+        question = html.unescape(question)
+        correct_answer = html.unescape(correct_answer)
+
+        # Compose the tweet with the trivia question
+        tweet_text = f"🤔 Trivia Time! {question} #Trivia"
+        tweet_response = client.create_tweet(text=tweet_text)
+        tweet_id = tweet_response.data["id"]
+
+        # Compose the comment with the correct answer
+        answer_text = f"📝 Answer: {correct_answer}"
+        client.create_tweet(text=answer_text, in_reply_to_tweet_id=tweet_id)
+        print("Trivia tweet and answer posted successfully!")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 # Initialize the scheduler
 jobstores = {
     'default': MemoryJobStore()
 }
 scheduler = BlockingScheduler(jobstores=jobstores, timezone=timezone('Africa/Nairobi'))
 # Schedule the daily weather tweet at 07:10
-scheduler.add_job(schedule_daily_tweet, 'cron', hour=7,  minute=10)
-
+scheduler.add_job(schedule_daily_tweet, 'cron', hour=7, minute=10, timezone='Africa/Nairobi')
 # Schedule the random recipe tweet at 13:10
 scheduler.add_job(post_random_recipe_tweet, 'cron', hour=13, minute=10)
 
 # Schedule the movie tweet at a fixed time, e.g., every hour
 scheduler.add_job(post_movie_tweet, 'interval', hours=4)
-
+#post a random fact Schedule the job to run daily at 11:25 AM
+scheduler.add_job(post_fact, CronTrigger(hour=10, minute=1))
+#post a random pun
+scheduler.add_job(post_pun, CronTrigger(hour=11, minute=1))
+#post random trivia Schedule the job to run daily 
+scheduler.add_job(post_trivia, CronTrigger(hour=12, minute=1))
 # Start the scheduler
 scheduler.start()
 
