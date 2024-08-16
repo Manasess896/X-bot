@@ -259,7 +259,8 @@ def post_movie_tweet():
     else:
         post_tweet(tweet_text)
 #get random fact
-        def get_random_fact():
+        
+def get_random_fact():
     try:
         response = requests.get("https://uselessfacts.jsph.pl/random.json?language=en")
         response.raise_for_status()
@@ -267,7 +268,6 @@ def post_movie_tweet():
         return html.unescape(data['text'])
     except Exception as e:
         return f"Error fetching fact: {e}"
-
 def post_fact():
     fact = get_random_fact()
     try:
