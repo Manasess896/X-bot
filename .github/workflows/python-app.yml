@@ -34,5 +34,8 @@ jobs:
           EDAMAM_APP_ID: ${{ secrets.EDAMAM_APP_ID }}
           WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          METEOSOURCE_API_KEY: ${{ secrets.METEOSOURCE_API_KEY }}
+          EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
+    
         run: |
           python Main.py
