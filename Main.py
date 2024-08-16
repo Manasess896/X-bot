@@ -15,7 +15,7 @@ from threading import Thread
 from pytz import timezone
 # Optional imports
 # from apscheduler.schedulers.background import BackgroundScheduler
-import schedule
+#import schedule
 # from dotenv import load_dotenv
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
