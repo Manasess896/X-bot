@@ -71,15 +71,7 @@ def get_weather():
         print(f"Error retrieving temperature from MeteoSource: {e}")
         current_temp = None
 
-    # Get condition from WeatherAPI
-    try:
-        response = requests.get(weather_api_url)
-        response.raise_for_status()
-        data = response.json()
-        condition = data['current']['condition']['text']
-    except Exception as e:
-        print(f"Error retrieving weather condition from WeatherAPI: {e}")
-        condition = "No condition data available"
+    
 
     # Get current time and date
     tz = pytz.timezone('Africa/Nairobi')
@@ -87,7 +79,7 @@ def get_weather():
     formatted_time = now.strftime('%I:%M %p')
     formatted_day = now.strftime('%A %d %B')
 
-    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather is {condition} with a temperature of {current_temp}°C."
+    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather temperature is  {current_temp}°C."
 
 # Function to get USD to KES exchange rate
 def get_usd_to_kes_rate(api_key):
@@ -182,34 +174,37 @@ def post_random_recipe_tweet():
 
 # Function to fetch popular movies from TMDb
 def fetch_popular_movies(page=1):
-    url = f"https://api.themoviedb.org/3/movie/popular?api_key={tmdb_api_key}&language=en-US&page={page}"
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        url = f"https://api.themoviedb.org/3/movie/popular?api_key={tmdb_api_key}&language=en-US&page={page}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error if the request failed
         data = response.json()
         return data['results']
-    else:
-        print(f"Error fetching popular movies: {response.status_code} - {response.reason}")
+    except requests.RequestException as e:
+        print(f"Error fetching popular movies: {e}")
         return []
 
 # Function to fetch IMDb ID from TMDb
 def fetch_movie_external_ids(tmdb_id):
-    url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/external_ids?api_key={tmdb_api_key}"
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/external_ids?api_key={tmdb_api_key}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error if the request failed
         data = response.json()
-        return data['imdb_id']
-    else:
-        print(f"Error fetching external IDs: {response.status_code} - {response.reason}")
+        return data.get('imdb_id')
+    except requests.RequestException as e:
+        print(f"Error fetching external IDs: {e}")
         return None
 
 # Function to fetch movie details from OMDb
 def fetch_movie_details(imdb_id):
-    url = f"https://www.omdbapi.com/?i={imdb_id}&apikey={omdb_api_key}"  # Use the imported OMDb API key
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        url = f"https://www.omdbapi.com/?i={imdb_id}&apikey={omdb_api_key}"  # Use the imported OMDb API key
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error if the request failed
         return response.json()
-    else:
-        print(f"Error fetching movie details: {response.status_code} - {response.reason}")
+    except requests.RequestException as e:
+        print(f"Error fetching movie details: {e}")
         return None
 
 # Function to post a movie tweet
@@ -236,28 +231,36 @@ def post_movie_tweet():
     # Correct the conditional statement:
     genres = movie_details['Genre'].split(', ') if 'Genre' in movie_details else [] 
     genres = ' '.join([f"#{genre}" for genre in genres])
-    tweet_text = ( f"🎬 {movie_details['Title']} ({movie_details['Year']})\n"
+    tweet_text = (f"🎬 {movie_details['Title']} ({movie_details['Year']})\n"
                   f"Rating: ⭐️ {movie_details['imdbRating']} / 10\n"
-                 # f"Genres: {genres}\n"
                   f"Plot: {movie_details['Plot']}\n"
-                 # f"Director: {movie_details['Director']}\n"
-                 # f"Stars: {movie_details['Actors']}\n"
                   f"More info: https://www.imdb.com/title/{imdb_id}/")
 
     # Download the poster image
     poster_url = movie_details['Poster']
     if poster_url != 'N/A':
-        image_response = requests.get(poster_url)
-        if image_response.status_code == 200:
+        try:
+            image_response = requests.get(poster_url)
+            image_response.raise_for_status()  # Raise an error if the request failed
             image = BytesIO(image_response.content)
             media = api.media_upload(filename="poster.jpg", file=image)
 
             # Post the tweet with the attached image
-            client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
-        else:
-            print(f"Error downloading poster image: {image_response.status_code} - {image_response.reason}")
+            response = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
+            print("Tweet posted successfully", response.data)
+        except requests.RequestException as e:
+            print(f"Error downloading poster image: {e}")
+        except tweepy.TweepyException as e:
+            print(f"Failed to post tweet: {e}")
+            print(f"Response: {e.response.text}")
     else:
-        post_tweet(tweet_text)
+        try:
+            post_tweet(tweet_text)
+        except tweepy.TweepyException as e:
+            print(f"Failed to post tweet: {e}")
+            print(f"Response: {e.response.text}")
+
+
 #get random fact
         
 def get_random_fact():
