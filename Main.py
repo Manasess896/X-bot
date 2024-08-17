@@ -332,18 +332,24 @@ jobstores = {
 }
 scheduler = BlockingScheduler(jobstores=jobstores, timezone=timezone('Africa/Nairobi'))
 # Schedule the daily weather tweet at 07:10
-scheduler.add_job(schedule_daily_tweet, 'cron', hour=7, minute=10, timezone='Africa/Nairobi')
-# Schedule the random recipe tweet at 13:10
-scheduler.add_job(post_random_recipe_tweet, 'cron', hour=13, minute=10)
+nairobi_tz = timezone('Africa/Nairobi')
+# Schedule the daily tweet at 7:10 AM Nairobi time
+scheduler.add_job(schedule_daily_tweet, 'cron', hour=7, minute=10, timezone=nairobi_tz)
 
-# Schedule the movie tweet at a fixed time, e.g., every hour
-scheduler.add_job(post_movie_tweet, 'interval', hours=4)
-#post a random fact Schedule the job to run daily at 11:25 AM
-scheduler.add_job(post_fact, CronTrigger(hour=10, minute=1))
-#post a random pun
-scheduler.add_job(post_pun, CronTrigger(hour=11, minute=1))
-#post random trivia Schedule the job to run daily 
-scheduler.add_job(post_trivia, CronTrigger(hour=12, minute=1))
+# Schedule the random recipe tweet at 1:10 PM Nairobi time
+scheduler.add_job(post_random_recipe_tweet, 'cron', hour=13, minute=10, timezone=nairobi_tz)
+
+# Schedule the movie tweet every 4 hours Nairobi time
+scheduler.add_job(post_movie_tweet, 'interval', hours=4, timezone=nairobi_tz)
+
+# Schedule the random fact tweet daily at 10:01 AM Nairobi time
+scheduler.add_job(post_fact, CronTrigger(hour=10, minute=1, timezone=nairobi_tz))
+
+# Schedule the random pun tweet daily at 11:01 AM Nairobi time
+scheduler.add_job(post_pun, CronTrigger(hour=11, minute=10, timezone=nairobi_tz))
+
+# Schedule the random trivia tweet daily at 12:01 PM Nairobi time
+scheduler.add_job(post_trivia, CronTrigger(hour=12, minute=1, timezone=nairobi_tz))
 # Start the scheduler
 scheduler.start()
 
