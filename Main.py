@@ -326,6 +326,28 @@ def post_trivia():
 
     except Exception as e:
         print(f"An error occurred: {e}")
+
+# Function to post a random word and definition
+def post_word():
+    rw = RandomWords()
+    random_word = rw.get_random_word()
+
+    if random_word:
+        api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{random_word}"
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            word_data = response.json()[0]
+            word = word_data.get('word', 'No word found')
+            definition = word_data.get('meanings', [{}])[0].get('definitions', [{}])[0].get('definition', 'No definition found')
+            tweet = f"Word of the day: {word}\n\nDefinition: {definition}"
+            api.update_status(tweet)
+            print("Tweet posted successfully!")
+        else:
+            print("Error fetching data from the API.")
+    else:
+        print("Failed to retrieve a random word.")
+
 # Initialize the scheduler
 jobstores = {
     'default': MemoryJobStore()
@@ -350,6 +372,8 @@ scheduler.add_job(post_pun, CronTrigger(hour=11, minute=10, timezone=nairobi_tz)
 
 # Schedule the random trivia tweet daily at 12:01 PM Nairobi time
 scheduler.add_job(post_trivia, CronTrigger(hour=12, minute=1, timezone=nairobi_tz))
+# Schedule to post word and dictionary
+scheduler.add_job(post_word, CronTrigger(hour=8, minute=1, timezone=nairobi_tz))
 # Start the scheduler
 scheduler.start()
 
