@@ -357,7 +357,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone=timezone('Africa/Nai
 # Schedule the jobs with specific times and intervals
 scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=7, minute=10))
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=13, minute=10))
-scheduler.add_job(post_movie_tweet, 'interval', hours=4)
+scheduler.add_job(post_movie_tweet, 'interval', minutes=1)
 scheduler.add_job(post_fact, CronTrigger(hour=10, minute=1))
 scheduler.add_job(post_pun, CronTrigger(hour=11, minute=10))
 scheduler.add_job(post_trivia, CronTrigger(hour=12, minute=1))
