@@ -348,12 +348,11 @@ def post_word():
     else:
         print("Failed to retrieve a random word.")
 
-# Initialize the scheduler with timezone
+# Initialize the scheduler with the correct timezone
 jobstores = {
     'default': MemoryJobStore()
 }
-scheduler = BlockingScheduler(jobstores=jobstores, timezone='Etc/GMT-3')
-
+scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 
 # Schedule the jobs with specific times and intervals
 scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=7, minute=10))
