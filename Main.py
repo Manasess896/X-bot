@@ -352,7 +352,8 @@ def post_word():
 jobstores = {
     'default': MemoryJobStore()
 }
-scheduler = BlockingScheduler(jobstores=jobstores, timezone=timezone('Africa/Nairobi'))
+scheduler = BlockingScheduler(jobstores=jobstores, timezone='Etc/GMT-3')
+
 
 # Schedule the jobs with specific times and intervals
 scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=7, minute=10))
