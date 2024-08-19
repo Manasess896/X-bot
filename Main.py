@@ -406,7 +406,7 @@ def tweet_country_info():
             image = BytesIO(flag_response.content)
 
             # Upload the flag image
-            media = media_upload(filename='flag.png', file=image)
+            media = api.media_upload(filename='flag.png', file=image)
 
             # Post the tweet with the attached image
             response = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
@@ -436,7 +436,7 @@ scheduler.add_job(post_fact, CronTrigger(hour=7, minute=1), timezone=eat_timezon
 scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezone)  # 11:10 AM EAT
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 scheduler.add_job(post_word, CronTrigger(hour=17, minute=5), timezone=eat_timezone)  # 8:01 AM EAT
-scheduler.add_job(tweet_country_info, CronTrigger(hour=17, minute=17), timezone=eat_timezone)  # 8:01 AM EAT
+scheduler.add_job(tweet_country_info, CronTrigger(hour=17, minute=20), timezone=eat_timezone)  # 8:01 AM EAT
 
 # Start the scheduler
 scheduler.start()
