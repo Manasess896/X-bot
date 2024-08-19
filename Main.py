@@ -406,7 +406,7 @@ def tweet_country_info():
             image = BytesIO(flag_response.content)
 
             # Upload the flag image
-            media = api_v1.media_upload(filename='flag.png', file=image)
+            media = media_upload(filename='flag.png', file=image)
 
             # Post the tweet with the attached image
             response = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
