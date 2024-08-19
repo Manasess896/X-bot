@@ -435,8 +435,8 @@ scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
 scheduler.add_job(post_fact, CronTrigger(hour=7, minute=1), timezone=eat_timezone)  # 10:01 AM EAT
 scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezone)  # 11:10 AM EAT
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
-scheduler.add_job(post_word, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 AM EAT
-scheduler.add_job(tweet_country_info, 'cron', hour=11, minute=1)
+scheduler.add_job(post_word, CronTrigger(hour=17, minute=5), timezone=eat_timezone)  # 8:01 AM EAT
+scheduler.add_job(tweet_country_info, 'cron', hour=17, minute=6)
 
 # Start the scheduler
 scheduler.start()
