@@ -498,7 +498,7 @@ jobstores = {
 scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 
 # Convert EAT time to UTC for CronTrigger
-eat_timezone = pytz.timezone('Africa/Nairob')
+eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
 scheduler.add_job(morning_tweet, CronTrigger(hour=4, minute=10), timezone=eat_timezone)
