@@ -64,12 +64,10 @@ def get_weather_from_meteosource():
         response.raise_for_status()
         data = response.json()
         current_temp = data['current']['temperature']
-        temp_max = data['daily'][0]['temperature_max']
-        temp_min = data['daily'][0]['temperature_min']
-        return current_temp, temp_max, temp_min
+        return current_temp
     except Exception as e:
         print(f"Error retrieving temperature from MeteoSource: {e}")
-        return None, None, None
+        return None
 
 # Function to get weather condition from WeatherAPI
 def get_weather_info(weather_api_key):
@@ -117,11 +115,12 @@ def post_tweet(tweet_text):
         print("Tweet posted successfully!", response.data)
     except tweepy.TweepyException as e:
         print(f"An error occurred: {e}")
-        print(f"Response: {e.response.text}")
+        if e.response:
+            print(f"Response: {e.response.text}")
 
 # Function to schedule daily weather tweet
-def schedule_daily_tweet():
-    current_temp, temp_max, temp_min = get_weather_from_meteosource()
+def morning_tweet():
+    current_temp = get_weather_from_meteosource()
     if current_temp is not None:
         weather_condition = get_weather_info(weather_api_key)
         try:
@@ -133,10 +132,12 @@ def schedule_daily_tweet():
                 formatted_time = now.strftime('%I:%M %p')
                 formatted_day = now.strftime('%A %d %B %Y')
 
-                tweet_text = (f"Good morning Nairobi. It is {formatted_time} on {formatted_day}. "
-                              f"The weather condition is: {weather_condition}. "
-                              f"Current temperature: {current_temp}°C, High: {temp_max}°C, Low: {temp_min}°C. "
-                              f"The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar.")
+                tweet_text = (
+                    f"Good morning Nairobi. It is {formatted_time} on {formatted_day}. "
+                    f"The weather condition is: {weather_condition}. "
+                    f"Current temperature: {current_temp}°C. "
+                    f"The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar."
+                )
                 post_tweet(tweet_text)
             else:
                 print("Could not retrieve exchange rate.")
@@ -426,22 +427,26 @@ def get_country_info(country_name):
     data = response.json()
 
     if isinstance(data, list) and data:
-        country = data[0]
-        info = {
-            "name": country.get("name", {}).get("common"),
-            "flag": country.get("flags", {}).get("png"),
-            "population": country.get("population"),
-            "languages": ", ".join(country.get("languages", {}).values()),
-            "location": country.get("latlng"),
-            "timezones": country.get("timezones"),
-            "country_code": country.get("cca2"),
-            "capital": country.get("capital", [])[0] if country.get("capital") else None,
-            "continent": country.get("continents", [])[0] if country.get("continents") else None,
-            "president": country.get("government", {}).get("president")
-        }
-        return info
-    else:
-        return None
+   country = data[0]
+    info = {
+        "name": country.get("name", {}).get("common"),
+        "flag": country.get("flags", {}).get("png"),
+        "population": country.get("population"),
+        "languages": ", ".join(country.get("languages", {}).values()),
+        "location": country.get("latlng"),
+        "timezones": ", ".join(country.get("timezones", [])),
+        "country_code": country.get("cca2"),
+        "capital": country.get("capital", [])[0] if country.get("capital") else "No info",
+        "continent": country.get("continents", [])[0] if country.get("continents") else "No info",
+        "president": country.get("government", {}).get("president", "No info"),
+        "currency": ", ".join([v["name"] for v in country.get("currencies", {}).values()]),
+        "region": country.get("region"),
+        "subregion": country.get("subregion"),
+        "area": country.get("area"),
+        "phone_code": country.get("idd", {}).get("root") + country.get("idd", {}).get("suffixes", [])[0] if country.get("idd") else "No info"
+    }
+
+    return info
 
 def get_random_country_info():
     countries = get_countries_list()
@@ -460,7 +465,10 @@ def tweet_country_info():
                       f"Timezones: {info['timezones']}\n"
                       f"Country Code: {info['country_code']}\n"
                       f"Continent: {info['continent']}\n"
-                      f"President: {info.get('president', 'N/A')}\n"
+                      f"President: {info['president']}\n"
+                      f"Currency: {info['currency']}\n"
+                      f"Area: {info['area']} km²\n"
+                      f"Phone Code: {info['phone_code']}\n"
                       f"Flag: {info['flag']}")
 
         try:
@@ -490,16 +498,18 @@ jobstores = {
 scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 
 # Convert EAT time to UTC for CronTrigger
-eat_timezone = pytz.timezone('Africa/Nairobi')
+eat_timezone = pytz.timezone('Africa/Nairob')
 
-scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=17, minute=21), timezone=eat_timezone)  # 7:10 AM EAT
+
+scheduler.add_job(morning_tweet, CronTrigger(hour=4, minute=10), timezone=eat_timezone)
+ # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
 scheduler.add_job(post_fact, CronTrigger(hour=7, minute=1), timezone=eat_timezone)  # 10:01 AM EAT
 scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezone)  # 11:10 AM EAT
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 # Schedule the job
-scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=5), timezone=eat_timezone)  # 8:01 aM EAT
+scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 aM EAT
 scheduler.add_job(tweet_country_info, CronTrigger(hour=14, minute=0), timezone=eat_timezone)  # 8:01 AM EAT
 
 # Start the scheduler
