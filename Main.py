@@ -30,7 +30,6 @@ access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 
 # Weather API credentials
 weather_api_key = os.getenv('WEATHER_API_KEY')
-weather_api_url = 'http://api.weatherapi.com/v1/current.json'
 
 #meteo source api credentials
 meteosource_api_key = os.getenv('METEOSOURCE_API_KEY')
@@ -71,6 +70,28 @@ def get_weather():
         current_temp = None
 
     
+if weather_api_key is None:
+    raise ValueError("No API key found")
+
+api_url = 'http://api.weatherapi.com/v1/current.json'
+
+# Parameters for the API request
+params = {
+    'key': weather_api_key,
+    'q':
+    'Nairobi'  # Replace with the location for which you want to get the weather condition
+}
+
+try:
+    # Make the GET request to the API
+    response = requests.get(api_url, params=params)
+    if response.status_code == 200:
+        data = response.json()  # Parse JSON response
+        condition = data['current']['condition'][
+            'text'] 
+
+
+
 
     # Get current time and date
     tz = pytz.timezone('Africa/Nairobi')
@@ -78,7 +99,7 @@ def get_weather():
     formatted_time = now.strftime('%I:%M %p')
     formatted_day = now.strftime('%A %d %B')
 
-    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather temperature is  {current_temp}°C."
+    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather condition is : {condition} and  temperature is  {current_temp}°C."
 
 # Function to get USD to KES exchange rate
 def get_usd_to_kes_rate(api_key):
