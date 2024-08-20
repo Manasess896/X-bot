@@ -57,66 +57,58 @@ auth = tweepy.OAuthHandler(api_key, api_key_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
-# Function to get weather information
-def get_weather():
-    # Get temperature from MeteoSource
+# Function to get temperature information from MeteoSource
+def get_weather_from_meteosource():
     try:
         response = requests.get(meteosource_api_url)
         response.raise_for_status()
         data = response.json()
         current_temp = data['current']['temperature']
+        temp_max = data['daily'][0]['temperature_max']
+        temp_min = data['daily'][0]['temperature_min']
+        return current_temp, temp_max, temp_min
     except Exception as e:
         print(f"Error retrieving temperature from MeteoSource: {e}")
-        current_temp = None 
+        return None, None, None
+
+# Function to get weather condition from WeatherAPI
 def get_weather_info(weather_api_key):
-    if weather_api_key is None:
+    if not weather_api_key:
         raise ValueError("No API key found")
 
     api_url = 'http://api.weatherapi.com/v1/current.json'
 
-    # Parameters for the API request
     params = {
         'key': weather_api_key,
-        'q': 'Nairobi'  # Replace with the location for which you want to get the weather condition
+        'q': 'Nairobi'
     }
 
     try:
-        # Make the GET request to the API
         response = requests.get(api_url, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses
-        data = response.json()  # Parse JSON response
+        response.raise_for_status()
+        data = response.json()
         condition = data['current']['condition']['text']
-        current_temp = data['current']['temp_c']  # Adjust based on actual API response
+        return condition
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-        condition = 'Unknown'
-        current_temp = 'Unknown'
-    
-    # Get current time and date
-    tz = pytz.timezone('Africa/Nairobi')
-    now = datetime.now(tz)
-    formatted_time = now.strftime('%I:%M %p')
-    formatted_day = now.strftime('%A %d %B')
-
-    return (f"Good morning Nairobi. It is {formatted_time} {formatted_day}. "
-            f"The weather condition is: {condition} and the current temperature is {current_temp}°C.")
+        print(f"Error retrieving weather condition: {e}")
+        return 'Unknown'
 
 # Function to get USD to KES exchange rate
 def get_usd_to_kes_rate(api_key):
     url = f"https://openexchangerates.org/api/latest.json?app_id={api_key}"
-    response = requests.get(url)
-    data = response.json()
-    
-    if 'error' in data:
-        raise Exception(f"Error fetching data: {data['error']['description']}")
-    
-    # Get USD to KES exchange rate
-    usd_to_kes_rate = data['rates'].get('KES')
-    
-    if not usd_to_kes_rate:
-        raise Exception("Exchange rate for KES not found.")
-    
-    return usd_to_kes_rate
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        usd_to_kes_rate = data['rates'].get('KES')
+        if not usd_to_kes_rate:
+            raise Exception("Exchange rate for KES not found.")
+        
+        return usd_to_kes_rate
+    except Exception as e:
+        print(f"Error fetching exchange rate: {e}")
+        return None
 
 # Function to post a tweet
 def post_tweet(tweet_text):
@@ -129,14 +121,29 @@ def post_tweet(tweet_text):
 
 # Function to schedule daily weather tweet
 def schedule_daily_tweet():
-    weather_text = get_weather()
-    if weather_text:
+    current_temp, temp_max, temp_min = get_weather_from_meteosource()
+    if current_temp is not None:
+        weather_condition = get_weather_info(weather_api_key)
         try:
             exchange_rate = get_usd_to_kes_rate(os.getenv('EXCHANGE_API_KEY'))
-            tweet_text = f"{weather_text} The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar."
-            post_tweet(tweet_text)
+            if exchange_rate is not None:
+                # Get current time and date
+                tz = pytz.timezone('Africa/Nairobi')
+                now = datetime.now(tz)
+                formatted_time = now.strftime('%I:%M %p')
+                formatted_day = now.strftime('%A %d %B %Y')
+
+                tweet_text = (f"Good morning Nairobi. It is {formatted_time} on {formatted_day}. "
+                              f"The weather condition is: {weather_condition}. "
+                              f"Current temperature: {current_temp}°C, High: {temp_max}°C, Low: {temp_min}°C. "
+                              f"The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar.")
+                post_tweet(tweet_text)
+            else:
+                print("Could not retrieve exchange rate.")
         except Exception as e:
             print(f"An error occurred while fetching exchange rate: {e}")
+    else:
+        print("Could not retrieve weather data.")
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
     query = "random"
@@ -485,8 +492,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 # Convert EAT time to UTC for CronTrigger
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
-# Schedule the jobs with specific times and intervals
-scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=16, minute=29), timezone=eat_timezone)  # 7:10 AM EAT
+scheduler.add_job(schedule_daily_tweet, CronTrigger(hour=16, minute=55), timezone=eat_timezone)  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
 scheduler.add_job(post_fact, CronTrigger(hour=7, minute=1), timezone=eat_timezone)  # 10:01 AM EAT
