@@ -99,7 +99,7 @@ try:
     formatted_time = now.strftime('%I:%M %p')
     formatted_day = now.strftime('%A %d %B')
 
-    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather condition is : {condition} and  temperature is  {current_temp}°C."
+    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather condition is : {condition} and the current  temperature is  {current_temp}°C."
 
 # Function to get USD to KES exchange rate
 def get_usd_to_kes_rate(api_key):
