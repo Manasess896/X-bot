@@ -67,50 +67,39 @@ def get_weather():
         current_temp = data['current']['temperature']
     except Exception as e:
         print(f"Error retrieving temperature from MeteoSource: {e}")
-        current_temp = None
+        current_temp = None 
+def get_weather_info(weather_api_key):
+    if weather_api_key is None:
+        raise ValueError("No API key found")
 
+    api_url = 'http://api.weatherapi.com/v1/current.json'
 
+    # Parameters for the API request
+    params = {
+        'key': weather_api_key,
+        'q': 'Nairobi'  # Replace with the location for which you want to get the weather condition
+    }
 
-    
-if weather_api_key is None:
-    raise ValueError("No API key found")
-
-api_url = 'http://api.weatherapi.com/v1/current.json'
-
-# Parameters for the API request
-params = {
-    'key': weather_api_key,
-    'q': 'Nairobi'  # Replace with the location for which you want to get the weather
-}
-
-try:
-    # Make the GET request to the API
-    response = requests.get(api_url, params=params)
-
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
+    try:
+        # Make the GET request to the API
+        response = requests.get(api_url, params=params)
+        response.raise_for_status()  # Raise HTTPError for bad responses
         data = response.json()  # Parse JSON response
-        current_temp = data['current']['temp_c']  # Extract current temperature in Celsius
-        condition = data['current']['condition']['text']  # Extract weather condition
-        print(f"Current temperature: {current_temp}°C")
-        print(f"Weather condition: {condition}")
-    else:
-        print(f"Error: {response.status_code} - {response.reason}")
-
-except requests.exceptions.RequestException as e:
-    print(f"Error: {e}")
-
-
-
-
-
+        condition = data['current']['condition']['text']
+        current_temp = data['current']['temp_c']  # Adjust based on actual API response
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        condition = 'Unknown'
+        current_temp = 'Unknown'
+    
     # Get current time and date
     tz = pytz.timezone('Africa/Nairobi')
     now = datetime.now(tz)
     formatted_time = now.strftime('%I:%M %p')
     formatted_day = now.strftime('%A %d %B')
 
-    return f"Good morning Nairobi. It is {formatted_time} {formatted_day}. The weather condition is : {condition} and the current  temperature is  {current_temp}°C."
+    return (f"Good morning Nairobi. It is {formatted_time} {formatted_day}. "
+            f"The weather condition is: {condition} and the current temperature is {current_temp}°C.")
 
 # Function to get USD to KES exchange rate
 def get_usd_to_kes_rate(api_key):
