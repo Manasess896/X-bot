@@ -16,8 +16,7 @@ from threading import Thread
 from pytz import timezone
 # Optional imports
 # from apscheduler.schedulers.background import BackgroundScheduler
-#import schedule
-# from dotenv import load_dotenv
+from random_word import RandomWords
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 
@@ -327,26 +326,63 @@ def post_trivia():
     except Exception as e:
         print(f"An error occurred: {e}")
 
-# Function to post a random word and definition
-def post_word():
-    rw = RandomWords()
-    random_word = rw.get_random_word()
 
-    if random_word:
-        api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{random_word}"
-        response = requests.get(api_url)
 
+
+# Initialize the random word generator
+r = RandomWords()
+
+def get_word_definition():
+    while True:
+        # Get a random word
+        random_word = r.get_random_word()
+
+        # Define the endpoint for the Dictionary API
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{random_word}"
+
+        # Send a request to the Dictionary API
+        response = requests.get(url)
+
+        # Check if the request was successful
         if response.status_code == 200:
-            word_data = response.json()[0]
-            word = word_data.get('word', 'No word found')
-            definition = word_data.get('meanings', [{}])[0].get('definitions', [{}])[0].get('definition', 'No definition found')
-            tweet = f"Word of the day: {word}\n\nDefinition: {definition}"
-            api.update_status(tweet)
-            print("Tweet posted successfully!")
+            data = response.json()[0]
+            
+            # Extract the word's pronunciation
+            pronunciation = data.get('phonetic', 'No pronunciation available')
+            
+            # Extract the part of speech
+            part_of_speech = data['meanings'][0]['partOfSpeech']
+            
+            # Extract the definition
+            definition = data['meanings'][0]['definitions'][0]['definition']
+            
+            # Extract an example sentence, if available
+            example = data['meanings'][0]['definitions'][0].get('example', 'No example available')
+            
+            # Extract synonyms, if available
+            synonyms = data['meanings'][0]['definitions'][0].get('synonyms', ['No synonyms available'])
+
+            tweet_content = (
+                f"Word: {random_word}\n"
+                f"Pronunciation: {pronunciation}\n"
+                f"Part of Speech: {part_of_speech}\n"
+                f"Definition: {definition}\n"
+                f"Example: {example}\n"
+                f"Synonyms: {', '.join(synonyms)}"
+            )
+
+            return tweet_content
         else:
-            print("Error fetching data from the API.")
-    else:
-        print("Failed to retrieve a random word.")
+            print(f"Could not fetch information for the word: {random_word}. Retrying...")
+
+def post_tweet():
+    tweet_content = get_word_definition()
+    client.create_tweet(text=tweet_content)  # Correct method for API v2
+
+
+
+
+
 
 
 #function to get random country info
@@ -435,8 +471,9 @@ scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
 scheduler.add_job(post_fact, CronTrigger(hour=7, minute=1), timezone=eat_timezone)  # 10:01 AM EAT
 scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezone)  # 11:10 AM EAT
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
-scheduler.add_job(post_word, CronTrigger(hour=17, minute=5), timezone=eat_timezone)  # 8:01 AM EAT
-scheduler.add_job(tweet_country_info, CronTrigger(hour=17, minute=20), timezone=eat_timezone)  # 8:01 AM EAT
+# Schedule the job
+scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=5), timezone=eat_timezone)  # 8:01 aM EAT
+scheduler.add_job(tweet_country_info, CronTrigger(hour=14, minute=0), timezone=eat_timezone)  # 8:01 AM EAT
 
 # Start the scheduler
 scheduler.start()
