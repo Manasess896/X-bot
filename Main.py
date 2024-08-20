@@ -79,18 +79,13 @@ api_url = 'http://api.weatherapi.com/v1/current.json'
 params = {
     'key': weather_api_key,
     'q':
-    'Nairobi'  # Replace with the location for which you want to get the weather condition
-}
-
-try:
+    'Nairobi'  # Replace with the location for which you want to get the weather conditiontext 
     # Make the GET request to the API
     response = requests.get(api_url, params=params)
     if response.status_code == 200:
         data = response.json()  # Parse JSON response
         condition = data['current']['condition']['text'] 
 
-except requests.exceptions.RequestException as e:
-    print(f"Error: {e}")
 
 
     # Get current time and date
