@@ -69,6 +69,8 @@ def get_weather():
         print(f"Error retrieving temperature from MeteoSource: {e}")
         current_temp = None
 
+
+
     
 if weather_api_key is None:
     raise ValueError("No API key found")
@@ -78,13 +80,27 @@ api_url = 'http://api.weatherapi.com/v1/current.json'
 # Parameters for the API request
 params = {
     'key': weather_api_key,
-    'q':
-    'Nairobi'  # Replace with the location for which you want to get the weather conditiontext 
+    'q': 'Nairobi'  # Replace with the location for which you want to get the weather
+}
+
+try:
     # Make the GET request to the API
     response = requests.get(api_url, params=params)
+
+    # Check if the request was successful (status code 200)
     if response.status_code == 200:
         data = response.json()  # Parse JSON response
-        condition = data['current']['condition']['text'] 
+        current_temp = data['current']['temp_c']  # Extract current temperature in Celsius
+        condition = data['current']['condition']['text']  # Extract weather condition
+        print(f"Current temperature: {current_temp}°C")
+        print(f"Weather condition: {condition}")
+    else:
+        print(f"Error: {response.status_code} - {response.reason}")
+
+except requests.exceptions.RequestException as e:
+    print(f"Error: {e}")
+
+
 
 
 
