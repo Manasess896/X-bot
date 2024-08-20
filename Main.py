@@ -427,8 +427,8 @@ def get_country_info(country_name):
     data = response.json()
 
     if isinstance(data, list) and data:
-    country = data[0]
-    info = {
+      country = data[0]
+      info = {
         "name": country.get("name", {}).get("common"),
         "flag": country.get("flags", {}).get("png"),
         "population": country.get("population"),
