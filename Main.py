@@ -145,6 +145,7 @@ def morning_tweet():
             print(f"An error occurred while fetching exchange rate: {e}")
     else:
         print("Could not retrieve weather data.")
+ 
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
     query = "random"
@@ -501,7 +502,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(morning_tweet, CronTrigger(hour=16, minute=32), timezone=eat_timezone)
+scheduler.add_job(morning_tweet, CronTrigger(hour=18, minute=32), timezone=eat_timezone)
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
