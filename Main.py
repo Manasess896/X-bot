@@ -501,7 +501,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(morning_tweet, CronTrigger(hour=4, minute=10), timezone=eat_timezone)
+scheduler.add_job(morning_tweet, CronTrigger(hour=16, minute=32), timezone=eat_timezone)
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
@@ -510,7 +510,7 @@ scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezon
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 # Schedule the job
 scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 aM EAT
-scheduler.add_job(tweet_country_info, CronTrigger(hour=14, minute=0), timezone=eat_timezone)  # 8:01 AM EAT
+scheduler.add_job(tweet_country_info, CronTrigger(hour=16, minute=34), timezone=eat_timezone)  # 8:01 AM EAT
 
 # Start the scheduler
 scheduler.start()
