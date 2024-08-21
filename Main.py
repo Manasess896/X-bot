@@ -409,13 +409,7 @@ def post_tweet():
     tweet_content = get_word_definition()
     client.create_tweet(text=tweet_content)  # Correct method for API v2
 
-
-
-
-
-
-
-#function to get random country info
+# Function to get random country info
 def get_countries_list():
     url = "https://restcountries.com/v3.1/all"
     response = requests.get(url)
@@ -428,26 +422,26 @@ def get_country_info(country_name):
     data = response.json()
 
     if isinstance(data, list) and data:
-      country = data[0]
-      info = {
-        "name": country.get("name", {}).get("common"),
-        "flag": country.get("flags", {}).get("png"),
-        "population": country.get("population"),
-        "languages": ", ".join(country.get("languages", {}).values()),
-        "location": country.get("latlng"),
-        "timezones": ", ".join(country.get("timezones", [])),
-        "country_code": country.get("cca2"),
-        "capital": country.get("capital", [])[0] if country.get("capital") else "No info",
-        "continent": country.get("continents", [])[0] if country.get("continents") else "No info",
-        "president": country.get("government", {}).get("president", "No info"),
-        "currency": ", ".join([v["name"] for v in country.get("currencies", {}).values()]),
-        "region": country.get("region"),
-        "subregion": country.get("subregion"),
-        "area": country.get("area"),
-        "phone_code": country.get("idd", {}).get("root") + country.get("idd", {}).get("suffixes", [])[0] if country.get("idd") else "No info"
-    }
+        country = data[0]
+        info = {
+            "name": country.get("name", {}).get("common"),
+            "flag": country.get("flags", {}).get("png"),
+            "population": country.get("population"),
+            "languages": ", ".join(country.get("languages", {}).values()),
+            "location": country.get("latlng"),
+            "timezones": ", ".join(country.get("timezones", [])),
+            "country_code": country.get("cca2"),
+            "capital": country.get("capital", [])[0] if country.get("capital") else "No info",
+            "continent": country.get("continents", [])[0] if country.get("continents") else "No info",
+            "president": country.get("government", {}).get("president", "No info"),
+            "currency": ", ".join([v["name"] for v in country.get("currencies", {}).values()]),
+            "region": country.get("region"),
+            "subregion": country.get("subregion"),
+            "area": country.get("area"),
+            "phone_code": country.get("idd", {}).get("root") + country.get("idd", {}).get("suffixes", [])[0] if country.get("idd") else "No info"
+        }
 
-    return info
+        return info
 
 def get_random_country_info():
     countries = get_countries_list()
@@ -464,6 +458,8 @@ def tweet_country_info():
                       f"Languages: {info['languages']}\n"
                       f"Location: {info['location']}\n"
                       f"Timezones: {info['timezones']}\n"
+                     f"Region: {info['region']}\n"  
+                      f"Subregion: {info['subregion']}\n"
                       f"Country Code: {info['country_code']}\n"
                       f"Continent: {info['continent']}\n"
                       f"President: {info['president']}\n"
@@ -491,7 +487,6 @@ def tweet_country_info():
             print(f"Failed to post tweet: {e}")
             print(f"Response: {e.response.text}")
 
-
 # Initialize the scheduler with the correct timezone
 jobstores = {
     'default': MemoryJobStore()
@@ -511,7 +506,7 @@ scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezon
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 # Schedule the job
 scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 aM EAT
-scheduler.add_job(tweet_country_info, CronTrigger(hour=16, minute=34), timezone=eat_timezone)  # 8:01 AM EAT
+scheduler.add_job(tweet_country_info, CronTrigger(hour=20, minute=24), timezone=eat_timezone)  # 8:01 AM EAT
 
 # Start the scheduler
 scheduler.start()
