@@ -54,6 +54,8 @@ client = tweepy.Client(
     access_token_secret=access_token_secret
 )
  # Fetch weather data from Meteosource API
+def fetch_and_post_tweet():
+    try:
         meteosource_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
         meteosource_response = requests.get(meteosource_url)
         weather_data = meteosource_response.json()
