@@ -361,83 +361,7 @@ def post_tweet():
     tweet_content = get_word_definition()
     client.create_tweet(text=tweet_content)  # Correct method for API v2
 
-# Function to get random country info
-def get_countries_list():
-    url = "https://restcountries.com/v3.1/all"
-    response = requests.get(url)
-    data = response.json()
-    return [country.get("name", {}).get("common") for country in data]
 
-def get_country_info(country_name):
-    url = f"https://restcountries.com/v3.1/name/{country_name}"
-    response = requests.get(url)
-    data = response.json()
-
-    if isinstance(data, list) and data:
-        country = data[0]
-        info = {
-            "name": country.get("name", {}).get("common"),
-            "flag": country.get("flags", {}).get("png"),
-            "population": country.get("population"),
-            "languages": ", ".join(country.get("languages", {}).values()),
-            "location": country.get("latlng"),
-            "timezones": ", ".join(country.get("timezones", [])),
-            "country_code": country.get("cca2"),
-            "capital": country.get("capital", [])[0] if country.get("capital") else "No info",
-            "continent": country.get("continents", [])[0] if country.get("continents") else "No info",
-            "president": country.get("government", {}).get("president", "No info"),
-            "currency": ", ".join([v["name"] for v in country.get("currencies", {}).values()]),
-            "region": country.get("region"),
-            "subregion": country.get("subregion"),
-            "area": country.get("area"),
-            "phone_code": country.get("idd", {}).get("root") + country.get("idd", {}).get("suffixes", [])[0] if country.get("idd") else "No info"
-        }
-
-        return info
-
-def get_random_country_info():
-    countries = get_countries_list()
-    random_country = random.choice(countries)
-    print(f"Random Country: {random_country}")
-    return get_country_info(random_country)
-
-def tweet_country_info():
-    info = get_random_country_info()
-    if info:
-        tweet_text = (f"Country: {info['name']}\n"
-                      f"Capital: {info['capital']}\n"
-                      f"Population: {info['population']}\n"
-                      f"Languages: {info['languages']}\n"
-                      f"Location: {info['location']}\n"
-                      f"Timezones: {info['timezones']}\n"
-                     f"Region: {info['region']}\n"  
-                      f"Subregion: {info['subregion']}\n"
-                      f"Country Code: {info['country_code']}\n"
-                      f"Continent: {info['continent']}\n"
-                      f"President: {info['president']}\n"
-                      f"Currency: {info['currency']}\n"
-                      f"Area: {info['area']} km²\n"
-                      f"Phone Code: {info['phone_code']}\n"
-                      f"Flag: {info['flag']}")
-
-        try:
-            # Download the flag image
-            flag_response = requests.get(info['flag'])
-            flag_response.raise_for_status()  # Raise an error for bad responses
-            image = BytesIO(flag_response.content)
-
-            # Upload the flag image
-            media = api.media_upload(filename='flag.png', file=image)
-
-            # Post the tweet with the attached image
-            response = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
-            print("Tweet posted successfully!", response.data)
-
-        except requests.RequestException as e:
-            print(f"Error downloading flag image: {e}")
-        except tweepy.TweepyException as e:
-            print(f"Failed to post tweet: {e}")
-            print(f"Response: {e.response.text}")
 
 # Initialize the scheduler with the correct timezone
 jobstores = {
@@ -449,7 +373,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(fetch_and_post_tweet, CronTrigger(hour=17, minute=30), timezone=eat_timezone)
+scheduler.add_job(fetch_and_post_tweet, CronTrigger(hour=4, minute=10), timezone=eat_timezone)
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
@@ -458,8 +382,6 @@ scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezon
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 # Schedule the job
 scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 aM EAT
-scheduler.add_job(tweet_country_info, CronTrigger(hour=20, minute=24), timezone=eat_timezone)  # 8:01 AM EAT
-
 # Start the scheduler
 scheduler.start()
 
