@@ -30,7 +30,8 @@ access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 
 # Weather API credentials
 weather_api_key = os.getenv('WEATHER_API_KEY')
-
+# OpenExchangeRates API credentials
+openexchangerates_api_key = os.getenv('EXCHANGE_API_KEY')
 #meteo source api credentials
 meteosource_api_key = os.getenv('METEOSOURCE_API_KEY')
 meteosource_api_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
@@ -53,98 +54,61 @@ client = tweepy.Client(
     access_token_secret=access_token_secret
 )
 
+class WeatherBot:
+    def __init__(self, bearer_token, api_key, api_key_secret, access_token, access_token_secret):
+        self.client = tweepy.Client(
+            bearer_token=bearer_token,
+            consumer_key=api_key,
+            consumer_secret=api_key_secret,
+            access_token=access_token,
+            access_token_secret=access_token_secret
+        )
+
+    def fetch_and_post_tweet(self):
+        try:
+            # Fetch weather data from Meteosource API
+            meteosource_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
+            meteosource_response = requests.get(meteosource_url)
+            weather_data = meteosource_response.json()
+
+            # Fetch current weather conditions from WeatherAPI
+            weatherapi_url = f'http://api.weatherapi.com/v1/current.json?key={weather_api_key}&q=Nairobi'
+            weatherapi_response = requests.get(weatherapi_url)
+            condition_data = weatherapi_response.json()
+
+            # Fetch exchange rate data from OpenExchangeRates API
+            exchange_url = f'https://openexchangerates.org/api/latest.json?app_id={openexchangerates_api_key}'
+            exchange_response = requests.get(exchange_url)
+            exchange_data = exchange_response.json()
+
+            # Process the fetched data
+            current_temp = weather_data['current']['temperature']
+            condition = condition_data['current']['condition']['text']
+            usd_to_kes = exchange_data['rates']['KES']
+
+            # Get the current time, day, date
+            now = datetime.now()
+            current_time = now.strftime("%I:%M %p")
+            current_day = now.strftime("%A")
+            current_date = now.strftime("%d %B")
+
+            # Determine the time of day
+            hour = now.hour
+            time_of_day = 'morning' if 5 <= hour < 12 else 'afternoon' if 12 <= hour < 17 else 'evening' if 17 <= hour < 21 else 'night'
+
+            # Compose the tweet
+            tweet = (
+                f"Good {time_of_day}, Nairobi. It is {current_time} {current_day} {current_date}. "
+                f"The weather temperature is {current_temp}°C. The shilling is trading at "
+                f"{usd_to_kes} KES per 1 USD."
+            )
+
+
 auth = tweepy.OAuthHandler(api_key, api_key_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
-# Function to get temperature information from MeteoSource
-def get_weather_from_meteosource():
-    try:
-        response = requests.get(meteosource_api_url)
-        response.raise_for_status()
-        data = response.json()
-        current_temp = data['current']['temperature']
-        return current_temp
-    except Exception as e:
-        print(f"Error retrieving temperature from MeteoSource: {e}")
-        return None
 
-# Function to get weather condition from WeatherAPI
-def get_weather_info(weather_api_key):
-    if not weather_api_key:
-        raise ValueError("No API key found")
-
-    api_url = 'http://api.weatherapi.com/v1/current.json'
-
-    params = {
-        'key': weather_api_key,
-        'q': 'Nairobi'
-    }
-
-    try:
-        response = requests.get(api_url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        condition = data['current']['condition']['text']
-        return condition
-    except requests.exceptions.RequestException as e:
-        print(f"Error retrieving weather condition: {e}")
-        return 'Unknown'
-
-# Function to get USD to KES exchange rate
-def get_usd_to_kes_rate(api_key):
-    url = f"https://openexchangerates.org/api/latest.json?app_id={api_key}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-
-        usd_to_kes_rate = data['rates'].get('KES')
-        if not usd_to_kes_rate:
-            raise Exception("Exchange rate for KES not found.")
-        
-        return usd_to_kes_rate
-    except Exception as e:
-        print(f"Error fetching exchange rate: {e}")
-        return None
-
-# Function to post a tweet
-def post_tweet(tweet_text):
-    try:
-        response = client.create_tweet(text=tweet_text)
-        print("Tweet posted successfully!", response.data)
-    except tweepy.TweepyException as e:
-        print(f"An error occurred: {e}")
-        if e.response:
-            print(f"Response: {e.response.text}")
-
-# Function to schedule daily weather tweet
-def morning_tweet():
-    current_temp = get_weather_from_meteosource()
-    if current_temp is not None:
-        weather_condition = get_weather_info(weather_api_key)
-        try:
-            exchange_rate = get_usd_to_kes_rate(os.getenv('EXCHANGE_API_KEY'))
-            if exchange_rate is not None:
-                # Get current time and date
-                tz = pytz.timezone('Africa/Nairobi')
-                now = datetime.now(tz)
-                formatted_time = now.strftime('%I:%M %p')
-                formatted_day = now.strftime('%A %d %B %Y')
-
-                tweet_text = (
-                    f"Good morning Nairobi. It is {formatted_time} on {formatted_day}. "
-                    f"The weather condition is: {weather_condition}. "
-                    f"Current temperature: {current_temp}°C. "
-                    f"The shilling is trading at {exchange_rate:.2f} KES per 1 USD dollar."
-                )
-                post_tweet(tweet_text)
-            else:
-                print("Could not retrieve exchange rate.")
-        except Exception as e:
-            print(f"An error occurred while fetching exchange rate: {e}")
-    else:
-        print("Could not retrieve weather data.")
  
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
@@ -497,7 +461,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(morning_tweet, CronTrigger(hour=18, minute=32), timezone=eat_timezone)
+scheduler.add_job(bot.fetch_and_post_tweet, 'cron', hour=17, minute=0) 
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
