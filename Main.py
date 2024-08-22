@@ -53,61 +53,49 @@ client = tweepy.Client(
     access_token=access_token,
     access_token_secret=access_token_secret
 )
+ # Fetch weather data from Meteosource API
+        meteosource_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
+        meteosource_response = requests.get(meteosource_url)
+        weather_data = meteosource_response.json()
 
-class WeatherBot:
-    def __init__(self, bearer_token, api_key, api_key_secret, access_token, access_token_secret):
-        self.client = tweepy.Client(
-            bearer_token=bearer_token,
-            consumer_key=api_key,
-            consumer_secret=api_key_secret,
-            access_token=access_token,
-            access_token_secret=access_token_secret
+        # Fetch current weather conditions from WeatherAPI
+        weatherapi_url = f'http://api.weatherapi.com/v1/current.json?key={weather_api_key}&q=Nairobi'
+        weatherapi_response = requests.get(weatherapi_url)
+        condition_data = weatherapi_response.json()
+
+        # Fetch exchange rate data from OpenExchangeRates API
+        exchange_url = f'https://openexchangerates.org/api/latest.json?app_id={openexchangerates_api_key}'
+        exchange_response = requests.get(exchange_url)
+        exchange_data = exchange_response.json()
+
+        # Process the fetched data
+        current_temp = weather_data['current']['temperature']
+        condition = condition_data['current']['condition']['text']
+        usd_to_kes = exchange_data['rates']['KES']
+
+        # Get the current time, day, date
+        now = datetime.now()
+        current_time = now.strftime("%I:%M %p")
+        current_day = now.strftime("%A")
+        current_date = now.strftime("%d %B")
+
+        # Determine the time of day
+        hour = now.hour
+        time_of_day = 'morning' if 5 <= hour < 12 else 'afternoon' if 12 <= hour < 17 else 'evening' if 17 <= hour < 21 else 'night'
+
+        # Compose the tweet
+        tweet = (
+            f"Good {time_of_day}, Nairobi. It is {current_time} {current_day} {current_date}. "
+            f"The weather temperature is {current_temp}°C. The shilling is trading at "
+            f"{usd_to_kes} KES per 1 USD."
         )
 
-    def fetch_and_post_tweet(self):
-        try:
-            # Fetch weather data from Meteosource API
-            meteosource_url = f'https://www.meteosource.com/api/v1/free/point?place_id=nairobi&sections=all&timezone=Africa/Nairobi&language=en&units=metric&key={meteosource_api_key}'
-            meteosource_response = requests.get(meteosource_url)
-            weather_data = meteosource_response.json()
+        # Post the tweet using client.create_tweet()
+        client.create_tweet(text=tweet)
+        logging.info("Tweet posted successfully.")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
-            # Fetch current weather conditions from WeatherAPI
-            weatherapi_url = f'http://api.weatherapi.com/v1/current.json?key={weather_api_key}&q=Nairobi'
-            weatherapi_response = requests.get(weatherapi_url)
-            condition_data = weatherapi_response.json()
-
-            # Fetch exchange rate data from OpenExchangeRates API
-            exchange_url = f'https://openexchangerates.org/api/latest.json?app_id={openexchangerates_api_key}'
-            exchange_response = requests.get(exchange_url)
-            exchange_data = exchange_response.json()
-
-            # Process the fetched data
-            current_temp = weather_data['current']['temperature']
-            condition = condition_data['current']['condition']['text']
-            usd_to_kes = exchange_data['rates']['KES']
-
-            # Get the current time, day, date
-            now = datetime.now()
-            current_time = now.strftime("%I:%M %p")
-            current_day = now.strftime("%A")
-            current_date = now.strftime("%d %B")
-
-            # Determine the time of day
-            hour = now.hour
-            time_of_day = 'morning' if 5 <= hour < 12 else 'afternoon' if 12 <= hour < 17 else 'evening' if 17 <= hour < 21 else 'night'
-
-            # Compose the tweet
-            tweet = (
-                f"Good {time_of_day}, Nairobi. It is {current_time} {current_day} {current_date}. "
-                f"The weather temperature is {current_temp}°C. The shilling is trading at "
-                f"{usd_to_kes} KES per 1 USD."
-            )
-
-
-
-
-
- 
 # Function to get a random lunch recipe
 def get_random_lunch_recipe():
     query = "random"
@@ -459,7 +447,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(bot.fetch_and_post_tweet, 'cron', hour=17, minute=0) 
+scheduler.add_job(bot.fetch_and_post_tweet, 'cron', hour=17, minute=15) 
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
