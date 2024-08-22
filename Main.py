@@ -449,7 +449,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 eat_timezone = pytz.timezone('Africa/Nairobi')
 
 
-scheduler.add_job(fetch_and_post_tweet, 'cron', hour=17, minute=25) 
+scheduler.add_job(fetch_and_post_tweet, CronTrigger(hour=17, minute=30), timezone=eat_timezone)
  # 7:10 AM EAT
 scheduler.add_job(post_random_recipe_tweet, CronTrigger(hour=10, minute=10), timezone=eat_timezone)  # 1:10 PM EAT
 scheduler.add_job(post_movie_tweet, 'interval', minutes=180)  # Every 3 hours
