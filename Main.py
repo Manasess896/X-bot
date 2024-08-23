@@ -76,18 +76,26 @@ def fetch_and_post_tweet():
         usd_to_kes = exchange_data['rates']['KES']
 
         # Get the current time, day, date
-        now = datetime.now()
-        current_time = now.strftime("%I:%M %p")
-        current_day = now.strftime("%A")
-        current_date = now.strftime("%d %B")
+     
+# Define the Kenyan timezone
+kenya_tz = pytz.timezone('Africa/Nairobi')
+now = datetime.now(kenya_tz)
 
-        # Determine the time of day
-        hour = now.hour
-        time_of_day = 'morning' if 5 <= hour < 12 else 'afternoon' if 12 <= hour < 17 else 'evening' if 17 <= hour < 21 else 'night'
+# Format current time
+current_time = now.strftime("%I:%M %p")
 
+# Format current day
+current_day = now.strftime("%A")
+
+# Format current date with year
+current_date = now.strftime("%d %B %Y")
+
+print("Current time:", current_time)
+print("Current day:", current_day)
+print("Current date:", current_date)
         # Compose the tweet
         tweet = (
-            f"Good {time_of_day}, Nairobi. It is {current_time} {current_day} {current_date}. "
+            f"Good morning, Nairobi. It is {current_time} {current_day} {current_date}. "
             f"The weather temperature is {current_temp}°C. The shilling is trading at "
             f"{usd_to_kes} KES per 1 USD."
         )
