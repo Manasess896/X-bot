@@ -77,22 +77,11 @@ def fetch_and_post_tweet():
 
         # Get the current time, day, date
      
-        # Define the Kenyan timezone
-         kenya_tz = pytz.timezone('Africa/Nairobi')
-         now = datetime.now(kenya_tz)
-
-# Format current time
-         current_time = now.strftime("%I:%M %p")
-
-# Format current day
-         current_day = now.strftime("%A")
-
-# Format current date with year
-         current_date = now.strftime("%d %B %Y")
-
-print("Current time:", current_time)
-print("Current day:", current_day)
-print("Current date:", current_date)
+        tz = pytz.timezone('Africa/Nairobi')
+        now = datetime.now(tz)
+        current_time = now.strftime('%I:%M %p')
+        current_day = now.strftime('%A %d %B')
+  
         # Compose the tweet
         tweet = (
             f"Good morning, Nairobi. It is {current_time} {current_day} {current_date}. "
