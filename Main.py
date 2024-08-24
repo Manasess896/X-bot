@@ -45,7 +45,7 @@ edamam_app_key = os.getenv('EDAMAM_APP_KEY')
 tmdb_api_key = os.getenv('TMDB_API_KEY')
 omdb_api_key = os.getenv('OMDB_API_KEY')  # Import OMDb API key from environment
 
-# Authenticate to Twitter
+# Authenticate to Twitter using client 
 client = tweepy.Client(
     bearer_token=bearer_token,
     consumer_key=api_key,
@@ -53,6 +53,13 @@ client = tweepy.Client(
     access_token=access_token,
     access_token_secret=access_token_secret
 )
+
+#authenticate to tweeter using API
+auth = tweepy.OAuth1UserHandler(
+    api_key, api_key_secret, access_token, access_token_secret
+)
+api = tweepy.API(auth)
+
  # Fetch weather data from Meteosource API
 def fetch_and_post_tweet():
     try:
