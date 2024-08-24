@@ -90,9 +90,9 @@ def fetch_and_post_tweet():
 # Format current date with year
         current_date = now.strftime("%d %B %Y")
 
-print("Current time:", current_time)
-print("Current day:", current_day)
-print("Current date:", current_date)
+        print("Current time:",     current_time)
+        print("Current day:", current_day)
+        print("Current date:", current_date)
         # Compose the tweet
         tweet = (
             f"Good morning, Nairobi. It is {current_time} {current_day} {current_date}. "
