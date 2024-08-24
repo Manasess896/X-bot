@@ -295,7 +295,7 @@ def post_pun():
     except tweepy.TweepyException as e:
         print(f"Pun: Failed to post pun: {e}")
 
-#get random trivia 
+#Get random trivia and answers
 def post_trivia():
     try:
         # Fetch a random trivia question from Open Trivia Database
@@ -305,13 +305,20 @@ def post_trivia():
         trivia_data = response.json()
         question = trivia_data["results"][0]["question"]
         correct_answer = trivia_data["results"][0]["correct_answer"]
-
+        incorrect_answers = trivia_data["results"][0]["incorrect_answers"]
+        
         # Decode HTML entities
         question = html.unescape(question)
         correct_answer = html.unescape(correct_answer)
-
-        # Compose the tweet with the trivia question
-        tweet_text = f"🤔 Trivia Time! {question} #Trivia"
+        incorrect_answers = [html.unescape(ans) for ans in incorrect_answers]
+        
+        # Combine correct and incorrect answers and shuffle
+        answers = [correct_answer] + incorrect_answers
+        random.shuffle(answers)
+        
+        # Compose the tweet with the trivia question and options
+        options = "\n".join(f"{i+1}. {ans}" for i, ans in enumerate(answers))
+        tweet_text = f"🤔 Trivia Time!\n{question}\n{options}\n#Trivia"
         tweet_response = client.create_tweet(text=tweet_text)
         tweet_id = tweet_response.data["id"]
 
@@ -377,6 +384,86 @@ def post_tweet():
     client.create_tweet(text=tweet_content)  # Correct method for API v2
 
 
+#function to get random country info
+def get_countries_list():
+    url = "https://restcountries.com/v3.1/all"
+    response = requests.get(url)
+    data = response.json()
+    return [country.get("name", {}).get("common") for country in data]
+
+def get_country_info(country_name):
+    url = f"https://restcountries.com/v3.1/name/{country_name}"
+    response = requests.get(url)
+    data = response.json()
+
+    if isinstance(data, list) and data:
+        country = data[0]
+        info = {
+            "name": country.get("name", {}).get("common", "No information found"),
+            "flag": country.get("flags", {}).get("png", ""),
+            "population": country.get("population", "No information found"),
+            "languages": ", ".join(country.get("languages", {}).values()) if country.get("languages") else "No information found",
+            "location": country.get("latlng", "No information found"),
+            "timezones": ", ".join(country.get("timezones", [])) if country.get("timezones") else "No information found",
+            "country_code": country.get("cca2", "No information found"),
+            "capital": country.get("capital", ["No information found"])[0],
+            "continent": country.get("continents", ["No information found"])[0],
+            "president": country.get("government", {}).get("president", "No information found"),
+            "currency": ", ".join([v["name"] for v in country.get("currencies", {}).values()]) if country.get("currencies") else "No information found",
+            "region": country.get("region", "No information found"),
+            "subregion": country.get("subregion", "No information found"),
+            "area": country.get("area", "No information found"),
+            "phone_code": country.get("idd", {}).get("root", "No information found") + country.get("idd", {}).get("suffixes", [""])[0]
+        }
+        return info
+    else:
+        return None
+
+def get_random_country_info():
+    countries = get_countries_list()
+    random_country = random.choice(countries)
+    print(f"Random Country: {random_country}")
+    return get_country_info(random_country)
+
+def tweet_country_info():
+    info = get_random_country_info()
+    if info:
+        tweet_text = (f"Country: {info['name']}\n"
+                      f"Capital: {info['capital']}\n"
+                      f"Population: {info['population']}+\n"
+                      f"Languages: {info['languages']}\n"
+                      f"Location: {info['location']}\n"
+                      f"Timezones: {info['timezones']}\n"
+                      f"Country Code: {info['country_code']}\n"
+                      f"Continent: {info['continent']}\n"
+                     # f"Region: {info['region']}\n"  # Added line for region
+                      f"Subregion: {info['subregion']}\n"  # Added line for subregion
+                     # f"President: {info['president']}\n"
+                      f"Currency: {info['currency']}\n"
+                      f"Area: {info['area']} km²\n"
+                      f"Phone Code: {info['phone_code']}\n"
+                    #  f"Flag: {info['flag']}"
+                    )
+
+        try:
+            # Download the flag image
+            flag_response = requests.get(info['flag'])
+            flag_response.raise_for_status()  # Raise an error for bad responses
+            image = BytesIO(flag_response.content)
+
+            # Upload the flag image
+            media =api.media_upload(filename='flag.png', file=image)
+
+            # Post the tweet with the attached image
+            response = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
+            print("Tweet posted successfully!", response.data)
+
+        except requests.RequestException as e:
+            print(f"Error downloading flag image: {e}")
+        except tweepy.TweepyException as e:
+            print(f"Failed to post tweet: {e}")
+            print(f"Response: {e.response.text}")
+
 
 # Initialize the scheduler with the correct timezone
 jobstores = {
@@ -397,6 +484,9 @@ scheduler.add_job(post_pun, CronTrigger(hour=8, minute=10), timezone=eat_timezon
 scheduler.add_job(post_trivia, CronTrigger(hour=9, minute=1), timezone=eat_timezone)  # 12:01 PM EAT
 # Schedule the job
 scheduler.add_job(post_tweet, CronTrigger(hour=5, minute=1), timezone=eat_timezone)  # 8:01 aM EAT
+#random country post schedule
+scheduler.add_job(tweet_country_info, CronTrigger(hour=14, minute=5),
+timezone=eat_timezone)#posts at 17:05 kenyan time
 # Start the scheduler
 scheduler.start()
 
