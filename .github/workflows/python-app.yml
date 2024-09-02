@@ -9,7 +9,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    timeout-minutes: 358  # 5 hours and 58 minutes
+    timeout-minutes: 358  # 5 hours and 58 minutes timeout
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,6 +37,10 @@ jobs:
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
           METEOSOURCE_API_KEY: ${{ secrets.METEOSOURCE_API_KEY }}
           EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
+          WORDNIK_API_KEY: ${{ secrets.WORDNIK_API_KEY }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
     
         run: |
-          python Main.py
+          python Main.py 
+          python script.py
