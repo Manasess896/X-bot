@@ -3,4 +3,6 @@ tweepy
 requests
 APScheduler
 pytz
-random_word
+random_word 
+schedule 
+spotipy
