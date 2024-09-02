@@ -440,9 +440,9 @@ scheduler.add_job(post_joke_to_twitter, CronTrigger(hour=19, minute=0, timezone=
 
 # Schedule for posting a random Spotify song
 scheduler.add_job(post_song, CronTrigger(hour=11, minute=1, timezone=eat_timezone))
-scheduler.add_job(post_song, cronTrigger(hour=19, minute=1, timezone=eat_timezone))
+scheduler.add_job(post_song, CronTrigger(hour=19, minute=1, timezone=eat_timezone))
 # Schedule for posting a random movie or series with IntervalTrigger
-scheduler.add_job(post_content, IntervalTrigger(minutes=80))
+scheduler.add_job(post_content, IntervalTrigger(minutes=120))
 #scheduler.add_job(fetch_random_word, 'interval', minutes=1)
 
 print("🤖 Bot is running and will post according to the schedule ")
