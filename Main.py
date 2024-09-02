@@ -290,7 +290,7 @@ def get_random_pun():
 def post_pun():
     pun = get_random_pun()
     try:
-        tweet_response = client.create_tweet(text=f"Random Pun: {pun}")
+        tweet_response = client.create_tweet(text=f"{pun}")
         print(f"Pun posted successfully: {tweet_response.data['id']}")
     except tweepy.TweepyException as e:
         print(f"Pun: Failed to post pun: {e}")
