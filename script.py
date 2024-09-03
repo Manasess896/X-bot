@@ -433,7 +433,7 @@ eat_timezone = pytz.timezone('Africa/Nairobi')
 
 # Schedule jobs with CronTrigger
 #schedule to autoreply messages
-scheduler.add_job(check_for_new_messages, 'interval', seconds=30)
+#scheduler.add_job(check_for_new_messages, 'interval', seconds=30)
 
 scheduler.add_job(post_joke_to_twitter, CronTrigger(hour=6, minute=30, timezone=eat_timezone))
 scheduler.add_job(post_joke_to_twitter, CronTrigger(hour=19, minute=0, timezone=eat_timezone))
