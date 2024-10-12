@@ -196,7 +196,7 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 # Define the Nairobi timezone
 eat_timezone = pytz.timezone('Africa/Nairobi')
 # Schedule for posting a random movie or series with IntervalTrigger
-scheduler.add_job(post_content, IntervalTrigger(minutes=60))
+scheduler.add_job(post_content, IntervalTrigger(minutes=40))
 #scheduler.add_job(fetch_random_word, 'interval', minutes=1)
 
 print("🤖 Bot is running and will post according to the schedule ")
