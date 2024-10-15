@@ -42,7 +42,7 @@ jobs:
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
     
         run: |
-          #python movies.py &
+          python movies.py &
           python series.py
           #python Main.py &
           #python script.py
