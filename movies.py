@@ -6,22 +6,32 @@ import os
 import random
 from apscheduler.schedulers.blocking import BlockingScheduler
 from tweepy.errors import TooManyRequests
-from spotipy.oauth2 import SpotifyClientCredentials
-import spotipy
+from dotenv import load_dotenv  # Add this import
+
 import requests
 import html
-import schedule
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 import pytz
 from flask import Flask
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Twitter credentials
 bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 api_key = os.getenv('TWITTER_API_KEY')
 api_key_secret = os.getenv('TWITTER_API_KEY_SECRET')
 access_token = os.getenv('TWITTER_ACCESS_TOKEN')
 access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+
+# Debug prints to check environment variables
+print(f"BEARER_TOKEN: {bearer_token}")
+print(f"API_KEY: {api_key}")
+print(f"API_KEY_SECRET: {api_key_secret}")
+print(f"ACCESS_TOKEN: {access_token}")
+print(f"ACCESS_TOKEN_SECRET: {access_token_secret}")
 
 # Authenticate to Twitter using API
 auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token,
@@ -91,13 +101,6 @@ def get_top_rated_movies():
     return response.json().get("results", [])
 
 
-# Fetch trending TV series from TMDB
-def get_trending_series():
-    url = f"{TMDB_BASE_URL}/trending/tv/day?api_key={TMDB_API_KEY}"
-    response = requests.get(url)
-    return response.json().get("results", [])
-
-
 # Fetch movie details including trailer
 def get_movie_details(movie_id):
     details_url = f"{TMDB_BASE_URL}/movie/{movie_id}?api_key={TMDB_API_KEY}&append_to_response=videos"
@@ -105,25 +108,23 @@ def get_movie_details(movie_id):
     return response.json()
 
 
-# Post the movie or series on Twitter
+# Post the movie on Twitter
 def post_movie(movie, genres_mapping):
-    title = movie.get("title") or movie.get(
-        "name")  # Handle both movies and series
+    title = movie.get("title")  # Handle only movies
     if is_movie_posted(title):
-        print(f"🚫 Already posted: {title}")
+        print(f"Already posted: {title}")
         return
 
-    # Gather movie or series details
+    # Gather movie details
     rating = movie.get("vote_average", "N/A")
     genre_ids = movie.get("genre_ids", [])
     genres = ", ".join(
         [genres_mapping.get(genre_id, "Unknown") for genre_id in genre_ids])
-    release_date = movie.get("release_date") or movie.get(
-        "first_air_date", "Unknown Date")
+    release_date = movie.get("release_date", "Unknown Date")
     plot = movie.get("overview", "No plot available.")
     poster_path = movie.get("poster_path")
 
-    # Download the movie or series poster
+    # Download the movie poster
     poster_url = f"https://image.tmdb.org/t/p/original{poster_path}"
     poster_image = requests.get(poster_url).content
     with open("poster.jpg", "wb") as file:
@@ -163,28 +164,25 @@ def post_movie(movie, genres_mapping):
                        None)
         if trailer:
             trailer_url = f"https://www.youtube.com/watch?v={trailer['key']}"
-            client.create_tweet(text=f"🎥 Watch the trailer: {trailer_url}",
+            client.create_tweet(text=f"Watch the trailer: {trailer_url}",
                                 in_reply_to_tweet_id=tweet_id)
 
-        # Save the movie or series title to prevent reposting
+        # Save the movie title to prevent reposting
         save_posted_movie(title)
-        print(f"✅ Posted: {title}")
+        print(f"Posted: {title}")
 
     except TooManyRequests:
-        print("🚫 Rate limit exceeded. Retrying after some time...")
+        print("Rate limit exceeded. Retrying after some time...")
         time.sleep(60)  # Wait for 1 minute before retrying
 
 
 # Function to post content
 def post_content():
     genres_mapping = fetch_genres()
-    content_fetchers = [get_trending_movies, get_trending_series]
-    selected_fetcher = random.choice(content_fetchers)
-    content = selected_fetcher()
+    content = get_trending_movies()
     if content:
-        post_movie(
-            random.choice(content),
-            genres_mapping)  # Post one random item from the fetched content
+        post_movie(random.choice(content), genres_mapping)  # Post one random movie from the fetched content
+
 #Initialize te the job store
 jobstores = {
     'default': MemoryJobStore()
@@ -196,10 +194,10 @@ scheduler = BlockingScheduler(jobstores=jobstores, timezone='Africa/Nairobi')
 # Define the Nairobi timezone
 eat_timezone = pytz.timezone('Africa/Nairobi')
 # Schedule for posting a random movie or series with IntervalTrigger
-scheduler.add_job(post_content, IntervalTrigger(minutes=60))
+scheduler.add_job(post_content, IntervalTrigger(minutes=1))
 #scheduler.add_job(fetch_random_word, 'interval', minutes=1)
 
-print("🤖 Bot is running and will post according to the schedule ")
+print("Bot is running and will post according to the schedule ")
 scheduler.start()
 # Flask keep-alive code
 app = Flask('')
