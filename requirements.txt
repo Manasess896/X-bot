@@ -6,3 +6,4 @@ pytz
 random_word 
 schedule 
 spotipy
+python-dotenv
