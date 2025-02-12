@@ -1,0 +1,9 @@
+Flask
+tweepy
+requests
+APScheduler
+pytz
+random_word 
+schedule 
+spotipy
+python-dotenv
