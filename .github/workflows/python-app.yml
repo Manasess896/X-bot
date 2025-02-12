@@ -1,0 +1,46 @@
+name: Run Python Script
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358  # 5 hours and 58 minutes timeout
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Python script
+        env:
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          EDAMAM_APP_KEY: ${{ secrets.EDAMAM_APP_KEY }}
+          EDAMAM_APP_ID: ${{ secrets.EDAMAM_APP_ID }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          METEOSOURCE_API_KEY: ${{ secrets.METEOSOURCE_API_KEY }}
+          EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
+          WORDNIK_API_KEY: ${{ secrets.WORDNIK_API_KEY }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+    
+        run: |
+          python Main.py &
+          python script.py
